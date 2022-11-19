@@ -56,6 +56,8 @@ def generate_data(num_data=100):
         with open('data.json', 'w') as f:
             # with proper indentation
             json.dump({'initial_world_states_list': initial_world_states_list, 'initial_world_state_commands': initial_world_state_commands, 'update_world_states': update_world_states}, f, indent=4)
+        # Also save the data in a csv file with the following format:
+        # initial_world_state, command, updated_world_state
         
 def mapping_words_to_num(word):
     if word == 'one':
@@ -81,14 +83,15 @@ def update_world_state(world_state, command):
             container2 = command[3] 
         else:
             container2 = None
+
     if 'add' == command[0]:
-        
         operation = command[0]
         quantity_color = command[1]
         color = command[2]
         container1 = command[4]
         container2 = None
     container1_state = world_state[container1]
+
     if container2:
         container2_state = world_state[container2]
     if operation == 'add':
@@ -99,14 +102,10 @@ def update_world_state(world_state, command):
         world_state[container1] = ''
         world_state[container2] = container2_state
     elif operation == 'unmix':
-        # number of different colors in the container
         num_colors = len(set(container1_state))
-        # if the number of colors is 1, then the container is already unmix
         if num_colors == 1:
             return world_state
-        # if the number of colors is 2, then the container will be divided into two containers
         elif num_colors > 1:
-            # divide the container into different containers corresponding to the number of different colors
             for i in range(num_colors):
                 world_state[container1+str(i)] = ''
                 # add the same colors into the same container
@@ -116,6 +115,7 @@ def update_world_state(world_state, command):
                         world_state[container1+str(i)] += color
 
             # delete the original container
+            del world_state[container1]
     return world_state
             
 

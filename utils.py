@@ -1,6 +1,6 @@
-import os 
 import logging
 import json
+import re
 def set_logger(log_path):
     """Set the logger to log info in terminal and file `log_path`."""
     logger = logging.getLogger()
@@ -59,3 +59,26 @@ def last_num_to_grond_ref(position, tot_len):
         return 'last '
     mapping_num_to_grond_ref = {1: 'last second', 2: 'last third', 3: 'last fourth'}
     return mapping_num_to_grond_ref[tot_len -1 - position] + ' '
+
+def post_processing_data(exp_dir):
+    with open(exp_dir +'/data.json', 'r') as f:
+        data = json.load(f)
+    initial_world_states_list = data['initial_world_states_list']
+    initial_world_state_commands = data['initial_world_state_commands']
+    update_world_states = data['update_world_states']
+    # post processing
+    for i, command in enumerate(initial_world_state_commands):
+        # template start and end token
+        initial_world_state_commands[i] = '<start> ' + command + ' <end>'
+    for i, world_state in enumerate(initial_world_states_list):
+        world_state = str(world_state)
+        # replace the numerical value with ""
+        world_state = re.sub(r'\d+', '', world_state)
+        initial_world_states_list[i] = '<start> ' + world_state + ' <end>'
+    for i, world_state in enumerate(update_world_states):
+        world_state = str(world_state)
+        world_state = re.sub(r'\d+', '', world_state)
+        update_world_states[i] = '<start> ' + str(world_state) + ' <end>'
+    with open(exp_dir +'/post_data.json', 'w') as f:
+        # with proper indentation
+        json.dump({'initial_world_states_list': initial_world_states_list, 'initial_world_state_commands': initial_world_state_commands, 'update_world_states': update_world_states}, f, indent=4)

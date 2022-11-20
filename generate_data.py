@@ -2,6 +2,8 @@ import random
 import json
 import argparse
 from utils import *
+import re 
+import os
 
 parser = argparse.ArgumentParser()
 # add parser for experiment name
@@ -14,9 +16,6 @@ args = parser.parse_args()
 operations = ['add', 'pour', 'unmix']
 grounded_objects_container = ['jar', 'Beaker', 'bottle']
 grounded_objects_color = ['orange', 'blue', 'green', 'yellow', 'red', 'purple']
-
-# ToDo: post processing module for adding grounded_references to the data
-grounded_references = ['Second', 'Third', 'Fourth', 'Fifth', 'last', 'last first', 'last second', 'last third', 'last fourth']
 
 def generate_initial_world_state(num_containers):
     # function to generate initial world state
@@ -88,7 +87,7 @@ def generate_data(num_data, exp_dir):
         with open(exp_dir +'/data.json', 'w') as f:
             # with proper indentation
             json.dump({'initial_world_states_list': initial_world_states_list, 'initial_world_state_commands': initial_world_state_commands, 'update_world_states': update_world_states}, f, indent=4)
-        
+        post_processing_data(exp_dir)
 
 def mapping_words_to_num(word):
     # using dictionary to map words to numbers
@@ -138,7 +137,9 @@ def update_world_state(world_state, command):
         world_state[container1] = ''
         world_state[container2] = container2_state
     elif operation == 'unmix':
-        num_colors = len(set(container1_state))
+        unique_colors = list(set(container1_state))
+        num_colors = len(set(unique_colors))
+
         if num_colors == 1:
             return world_state
         elif num_colors > 1:
@@ -149,9 +150,10 @@ def update_world_state(world_state, command):
                 # for example, if the container1_state is 'rrbbc', then the container1_0 will be 'rr', 
                 # container1_1 will be 'bb', and container1_2 will be 'c'
                 for color in container1_state:
-                    if color == container1_state[i]:
+                    if color == unique_colors[i]:
                         new_world_state[container1+str(i)] += color
-
+                # remove the container1[i] from the container1_state
+                
             # delete the original container with new_world_state_container
             final_dict={}
             for keys in world_state.keys():
@@ -162,7 +164,6 @@ def update_world_state(world_state, command):
             world_state = final_dict
     return world_state
             
-
 def main(exp_dir):
     generate_data(args.num_datapoints, exp_dir)
     

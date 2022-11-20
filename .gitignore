@@ -1,1 +1,4 @@
-*data.json
+# ignore /data
+/data
+# ignore python cache
+__pycache__

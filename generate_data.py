@@ -7,15 +7,16 @@ parser = argparse.ArgumentParser()
 # add parser for experiment name
 parser.add_argument('--exp_name', type=str, default='experiment')
 parser.add_argument('--num_datapoints', type=int, default=10, help='number of data to generate')
+parser.add_argument('--max_repeat_color', type=int, default=3, help='maximum number of times a color can be repeated in each container of the initial world state')
 args = parser.parse_args()
 
 # define vocab of world state
 operations = ['add', 'pour', 'unmix']
 grounded_objects_container = ['jar', 'Beaker', 'bottle']
-grounded_objects_color = ['brown', 'blue', 'green', 'yellow', 'red', 'purple']
+grounded_objects_color = ['orange', 'blue', 'green', 'yellow', 'red', 'purple']
 
 # ToDo: post processing module for adding grounded_references to the data
-grounded_references = ['Second', 'Third', 'Fourth', 'Fifth', 'all', 'last', 'last first', 'last second', 'last third', 'last fourth']
+grounded_references = ['Second', 'Third', 'Fourth', 'Fifth', 'last', 'last first', 'last second', 'last third', 'last fourth']
 
 def generate_initial_world_state(num_containers):
     # function to generate initial world state
@@ -24,10 +25,10 @@ def generate_initial_world_state(num_containers):
     counter = {}
     for container in grounded_objects_container:
         counter[container] = 0
-
     for _ in range(num_containers):
         num_colors = random.randint(1, len(grounded_objects_color))
-        colors = random.sample(grounded_objects_color, num_colors)
+        grounded_objects_color_with_prob = grounded_objects_color* args.max_repeat_color
+        colors = random.sample(grounded_objects_color_with_prob, num_colors)
         container_name = random.choice(grounded_objects_container)        
         color_name = ''.join([color[0] for color in colors])
         container_state = ''.join(color_name)
@@ -141,22 +142,28 @@ def update_world_state(world_state, command):
         if num_colors == 1:
             return world_state
         elif num_colors > 1:
+            new_world_state = {}
             for i in range(num_colors):
-                world_state[container1+str(i)] = ''
+                new_world_state[container1+str(i)] = ''
                 # add the same colors into the same container
                 # for example, if the container1_state is 'rrbbc', then the container1_0 will be 'rr', 
                 # container1_1 will be 'bb', and container1_2 will be 'c'
                 for color in container1_state:
                     if color == container1_state[i]:
-                        world_state[container1+str(i)] += color
+                        new_world_state[container1+str(i)] += color
 
-            # delete the original container
-            del world_state[container1]
+            # delete the original container with new_world_state_container
+            final_dict={}
+            for keys in world_state.keys():
+                final_dict[keys] = world_state[keys]
+                if keys == container1:
+                    final_dict.update(new_world_state)
+            del final_dict[container1]
+            world_state = final_dict
     return world_state
             
 
 def main(exp_dir):
-    num = 10
     generate_data(args.num_datapoints, exp_dir)
     
 # init main call

@@ -1,5 +1,6 @@
 import os 
 import logging
+import json
 def set_logger(log_path):
     """Set the logger to log info in terminal and file `log_path`."""
     logger = logging.getLogger()
@@ -40,3 +41,21 @@ class Params():
     def dict(self):
         """Gives dict-like access to Params instance by `params.dict['learning_rate']"""
         return self.__dict__
+
+def num_to_grond_ref(num):
+    # function to map number to grounded reference
+    # example: 1 -> second
+    if num == 0:
+        return 'first'
+    mapping_num_to_grond_ref = {1: 'second', 2: 'third', 3: 'fourth', 4: 'fifth'}
+    return mapping_num_to_grond_ref[num]
+
+def last_num_to_grond_ref(position, tot_len):
+    # function to map last number to grounded reference
+    # example: 1 -> second
+    if position < 1:
+        return ''
+    elif position == tot_len - 1:
+        return 'last '
+    mapping_num_to_grond_ref = {1: 'last second', 2: 'last third', 3: 'last fourth'}
+    return mapping_num_to_grond_ref[tot_len -1 - position] + ' '

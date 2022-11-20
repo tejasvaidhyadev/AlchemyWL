@@ -12,18 +12,11 @@ args = parser.parse_args()
 # define vocab of world state
 operations = ['add', 'pour', 'unmix']
 grounded_objects_container = ['jar', 'Beaker', 'bottle']
-grounded_objects_color = ['pink', 'blue', 'green', 'yellow', 'red', 'purple']
+grounded_objects_color = ['brown', 'blue', 'green', 'yellow', 'red', 'purple']
 
 # ToDo: post processing module for adding grounded_references to the data
 grounded_references = ['Second', 'Third', 'Fourth', 'Fifth', 'all', 'last', 'last first', 'last second', 'last third', 'last fourth']
 
-def num_to_grond_ref(num):
-    # function to map number to grounded reference
-    # example: 1 -> second
-    if num == 0:
-        return 'first'
-    mapping_num_to_grond_ref = {1: 'second', 2: 'third', 3: 'fourth', 4: 'fifth'}
-    return mapping_num_to_grond_ref[num]
 def generate_initial_world_state(num_containers):
     # function to generate initial world state
     initial_world_state = {}
@@ -41,7 +34,7 @@ def generate_initial_world_state(num_containers):
         initial_world_state[container_name+str(counter[container_name])] = container_state
         counter[container_name] += 1
 
-    return initial_world_state
+    return initial_world_state, counter
 
 def build_command_state(initial_world_state):
     # function to build command state
@@ -52,7 +45,7 @@ def build_command_state(initial_world_state):
     container2 = random.choice(list(initial_world_state.keys()))
     while container1 == container2:
         container2 = random.choice(list(initial_world_state.keys()))
-    into_out_of_to = random.choice(['into', 'to']) 
+    into_out_of_to = random.choice(['into', 'to'])
     
     if operation == 'add':
         # example command: add pink to jar
@@ -77,7 +70,7 @@ def generate_data(num_data, exp_dir):
         num_containers = random.randint(2, 5)
 
         # generate initial world state
-        initial_world_state = generate_initial_world_state(num_containers)
+        initial_world_state, counter_container_type = generate_initial_world_state(num_containers)
         initial_world_states_list.append(initial_world_state)
 
         # generate initial world state command
@@ -85,7 +78,7 @@ def generate_data(num_data, exp_dir):
         update_world = update_world_state(initial_world_state.copy(), command)
 
         # preprocessing command
-        command = preprocessing_command(command)
+        command = preprocessing_command(command, counter_container_type)
         initial_world_state_commands.append(command)
         update_world_states.append(update_world)
         # save the initial world state, command, and updated world state to a file
@@ -101,14 +94,18 @@ def mapping_words_to_num(word):
     mapping_words_to_num = {'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6}
     return mapping_words_to_num[word]
 
-def preprocessing_command(command):
+def preprocessing_command(command, counter_container_type):
     # Example command: "add six pink to jar1", to "add six pint to first jar"
     command = command.split()
     # find word with with part from grounded_objects_container
     # example: jar1 -> first jar
     for i, word in enumerate(command):
         if word[:-1] in grounded_objects_container:
-            command[i] = num_to_grond_ref(int(word[-1]))+ " " + word[:-1]
+            num = random.randint(0, 1)
+            if num == 0 and counter_container_type[word[:-1]] < 4:
+                command[i] = last_num_to_grond_ref(int(word[-1]), counter_container_type[word[:-1]]) + word[:-1]
+            else: 
+                command[i] = num_to_grond_ref(int(word[-1]))+ " " + word[:-1]
     return ' '.join(command)
 
 def update_world_state(world_state, command):

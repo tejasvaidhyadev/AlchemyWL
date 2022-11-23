@@ -6,6 +6,7 @@ import re
 import os
 from collections import OrderedDict
 import pdb
+from unit_test import *
 
 parser = argparse.ArgumentParser()
 # add parser for experiment name
@@ -13,12 +14,14 @@ parser.add_argument('--exp_name', type=str, default='experiment')
 parser.add_argument('--num_datapoints', type=int, default=10, help='number of data to generate')
 parser.add_argument('--num_colors', type=int, default=3, help='max number of distinct colors to keep per container')
 parser.add_argument('--max_repeat_color', type=int, default=3, help='maximum number of times a color can be repeated in each container of the initial world state')
+parser.add_argument('--unit_test', action='store_true', help='run unit test')
 args = parser.parse_args()
 
 # define vocab of world state
 operations = ['add', 'pour', 'unmix', 'filter', 'extract', 'remove', 'destroy', 'double', 'transfer', 'shift']
 grounded_objects_container = ['jar', 'beaker', 'bottle', 'mug', 'thermos', 'glass', 'cup', 'flask', 'burette', 'pitcher', 'jug', 'urn', 'decanter', 'flagon', 'canister', 'vessel']
 grounded_objects_color = ['orange', 'blue', 'green', 'yellow', 'red', 'purple', 'magenta', 'violet', 'aqua', 'cabernet', 'daffodil', 'emberiae', 'fuchsia', 'harlequin']
+
 char_to_color = {}
 for col in grounded_objects_color:
     if col[0] in char_to_color:
@@ -133,7 +136,7 @@ def generate_data(num_data, exp_dir):
         update_world_states.append(update_world)
         # save the initial world state, command, and updated world state to a file
         # save json fiel in the experiment directory
-
+        
         with open(exp_dir +'/data.json', 'w') as f:
             # with proper indentation
             json.dump({'initial_world_states_list': initial_world_states_list, 'initial_world_state_commands': initial_world_state_commands, 'update_world_states': update_world_states}, f, indent=4)
@@ -332,6 +335,26 @@ def update_world_state(world_state, command):
     return world_state
             
 def main(exp_dir):
+    logging.info('Running the following Unit Tests')
+    logging.info('---------------------------------')
+    if args.unit_test:
+        test_unique_colors()
+        logging.info('\t Test unique_colors passed')
+        test_generate_initial_world_state()
+        logging.info('\t Test generate_initial_world_state passed')
+        # test add command
+        test_command_on_world_state()
+        logging.info('\t Test command on world state passed')
+        
+        test_command_structure()
+        logging.info('\t Test structure command passed')
+    
+        logging.info('---------------------------------')
+    
+    else:
+        logging.info('Use argument --unit_test to avoid running unit tests')
+        logging.info('Skipping unit tests')
+
     generate_data(args.num_datapoints, exp_dir)
     
 # init main call

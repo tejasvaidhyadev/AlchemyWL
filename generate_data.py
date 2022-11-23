@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 # add parser for experiment name
 parser.add_argument('--exp_name', type=str, default='experiment')
 parser.add_argument('--num_datapoints', type=int, default=10, help='number of data to generate')
-parser.add_argument('--num_colors', type=int, default=4, help='max number of distinct colors to keep per container')
+parser.add_argument('--num_colors', type=int, default=3, help='max number of distinct colors to keep per container')
 parser.add_argument('--max_repeat_color', type=int, default=3, help='maximum number of times a color can be repeated in each container of the initial world state')
 args = parser.parse_args()
 
@@ -35,9 +35,16 @@ def generate_initial_world_state(num_containers):
         counter[container] = 0
     for _ in range(num_containers):
         num_colors = random.randint(1, args.num_colors)
-        grounded_objects_color_with_prob = grounded_objects_color* args.max_repeat_color
-        colors = random.sample(grounded_objects_color_with_prob, num_colors)
-        container_name = random.choice(grounded_objects_container)        
+        # grounded_objects_color_with_prob = grounded_objects_color* args.max_repeat_color
+        # colors = random.sample(grounded_objects_color_with_prob, num_colors)
+        unique_colors = random.sample(grounded_objects_color, num_colors)
+        colors = []
+        for col in unique_colors:
+            ch = random.randint(1, args.max_repeat_color)
+            for y in range(ch):
+                colors.append(col)
+        colors = random.sample(colors, len(colors))
+        container_name = random.choice(grounded_objects_container)
         color_name = ''.join([color[0] for color in colors])
         container_state = ''.join(color_name)
         initial_world_state[container_name+str(counter[container_name])] = container_state
@@ -248,20 +255,22 @@ def update_world_state(world_state, command):
             new_str = new_str + "".join([c for i in range(col_dict[c])])
         world_state[container1] = new_str
     elif operation == 'extract':
+        # pdb.set_trace()
         container1 = command[-1]
         container1_state = world_state[container1]
         quantity_color = mapping_words_to_num(command[1])
         color = command[2][0]
         new_ls = []
-        for c in range(len(container1_state)-1, 0, -1):
+        for c in range(len(container1_state)-1, -1, -1):
             if quantity_color > 0:
                 if container1_state[c]!=color:
                     new_ls.append(container1_state[c])
-                    quantity_color -= 1
+                else:
+                    quantity_color = quantity_color - 1
             else:
                 new_ls.append(container1_state[c])
         new_str = ""
-        for e in range(len(new_ls)-1, 0, -1):
+        for e in range(len(new_ls)-1, -1, -1):
             new_str = new_str + new_ls[e]
         world_state[container1] = new_str
     elif operation == 'remove':
@@ -283,7 +292,7 @@ def update_world_state(world_state, command):
         temp_qty = quantity_color
         color = command[2][0]
         new_ls = []
-        for c in range(len(container1_state)-1, 0, -1):
+        for c in range(len(container1_state)-1, -1, -1):
             if quantity_color > 0:
                 if container1_state[c]!=color:
                     new_ls.append(container1_state[c])
@@ -291,7 +300,7 @@ def update_world_state(world_state, command):
             else:
                 new_ls.append(container1_state[c])
         new_str = ""
-        for e in range(len(new_ls)-1, 0, -1):
+        for e in range(len(new_ls)-1, -1, -1):
             new_str = new_str + new_ls[e]
         world_state[container1] = new_str
         world_state[container2] = world_state[container2] + "".join([color for i in range(temp_qty)])

@@ -209,13 +209,13 @@ def update_world_state(world_state, command):
     elif operation == 'unmix':
         container1 = command[1]
         container1_state = world_state[container1]
-        unique_colors = list(set(container1_state))
-        num_colors = len(set(unique_colors))
+        unique_colors = list(sorted(set(container1_state), key=container1_state.index))
+        num_colors = len(unique_colors)
 
         if num_colors == 1:
             return world_state
         elif num_colors > 1:
-            new_world_state = {}
+            new_world_state = OrderedDict()
             for i in range(num_colors):
                 new_world_state[container1+str(i)] = ''
                 # add the same colors into the same container
@@ -227,7 +227,7 @@ def update_world_state(world_state, command):
                 # remove the container1[i] from the container1_state
                 
             # delete the original container with new_world_state_container
-            final_dict={}
+            final_dict=OrderedDict()
             for keys in world_state.keys():
                 final_dict[keys] = world_state[keys]
                 if keys == container1:

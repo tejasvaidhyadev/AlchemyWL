@@ -103,6 +103,7 @@ def build_command_state(initial_world_state):
     return command
 
 def generate_data(num_data, exp_dir):
+    # pdb.set_trace()
     initial_world_states_list = []
     initial_world_state_commands = []
     update_world_states = []
@@ -164,17 +165,25 @@ def mapping_num_to_words(num):
     return num_to_str[num]
 
 def preprocessing_command(command, counter_container_type):
-    # Example command: "add six pink to jar1", to "add six pint to first jar"
+    # Example command: "add six pink to jar1", to "add six pink to first jar"
     command = command.split()
     # find word with with part from grounded_objects_container
     # example: jar1 -> first jar
     for i, word in enumerate(command):
         if word[:-1] in grounded_objects_container:
-            num = random.randint(0, 1)
-            if num == 0 and counter_container_type[word[:-1]] < 4:
-                command[i] = last_num_to_grond_ref(int(word[-1]), counter_container_type[word[:-1]]) + word[:-1]
-            else: 
-                command[i] = num_to_grond_ref(int(word[-1]))+ " " + word[:-1]
+            # num = random.randint(0, 1)
+            if counter_container_type[word[:-1]] > 1:
+                if int(word[-1]) == counter_container_type[word[:-1]]-1:
+                    ch = random.uniform(0, 1)
+                    if ch < 0.3:
+                        command[i] = num_to_grond_ref(int(word[-1]))+ " " + word[:-1]
+                    else:
+                        command[i] = 'last ' + word[:-1]
+                        # command[i] = last_num_to_grond_ref(int(word[-1]), counter_container_type[word[:-1]]) + word[:-1]
+                else:
+                    command[i] = num_to_grond_ref(int(word[-1]))+ " " + word[:-1]
+            else:
+                command[i] = word[:-1]
     return ' '.join(command)
 
 def update_world_state(world_state, command):
@@ -194,7 +203,7 @@ def update_world_state(world_state, command):
         container2 = command[3]
         container1_state = world_state[container1]
         container2_state = world_state[container2]
-        container2_state = container1_state + container2_state
+        container2_state = container2_state + container1_state
         world_state[container1] = ''
         world_state[container2] = container2_state
     elif operation == 'unmix':

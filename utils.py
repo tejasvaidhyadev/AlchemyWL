@@ -2,6 +2,7 @@ import logging
 import json
 import re
 import pandas as pd
+import pdb
 
 def set_logger(log_path):
     """Set the logger to log info in terminal and file `log_path`."""
@@ -60,6 +61,14 @@ def last_num_to_grond_ref(position, tot_len):
     mapping_num_to_grond_ref = {1: 'last second', 2: 'last third', 3: 'last fourth'}
     return mapping_num_to_grond_ref[tot_len -1 - position] + ' '
 
+def transform_ws(ws):
+    # pdb.set_trace()
+    f_str = ""
+    for key in ws:
+        f_str = f_str + key + " : " + " ".join(list(ws[key])) + " ; "
+    f_str = re.sub(r'\d+', '', f_str)
+    return f_str.strip()
+
 def post_processing_data(exp_dir):
     with open(exp_dir +'/data.json', 'r') as f:
         data = json.load(f)
@@ -67,23 +76,25 @@ def post_processing_data(exp_dir):
     initial_world_state_commands = data['initial_world_state_commands']
     update_world_states = data['update_world_states']
     input_ls = []
+    output_ls = []
     # post processing
     for i, command in enumerate(initial_world_state_commands):
         # template start and end token
         initial_world_state_commands[i] = command
     for i, world_state in enumerate(initial_world_states_list):
+        input_ls.append(transform_ws(world_state) + " SEPARATE " + initial_world_state_commands[i])
         world_state = str(world_state)
         # replace the numerical value with ""
         world_state = re.sub(r'\d+', '', world_state)
         initial_world_states_list[i] = world_state
 
-        input_ls.append(initial_world_states_list[i] + " SEPARATE " + initial_world_state_commands[i])
     for i, world_state in enumerate(update_world_states):
+        output_ls.append(transform_ws(world_state))
         world_state = str(world_state)
         world_state = re.sub(r'\d+', '', world_state)
         update_world_states[i] = str(world_state)
 
-    df_dict = {"Input": input_ls, "Output": update_world_states}
+    df_dict = {"Input": input_ls, "Output": output_ls}
     df = pd.DataFrame.from_dict(df_dict)
     df.to_csv(exp_dir +'/full' + '.tsv', sep="\t", index=None)
 

@@ -296,7 +296,8 @@ def update_world_state(world_state, command):
             if quantity_color > 0:
                 if container1_state[c]!=color:
                     new_ls.append(container1_state[c])
-                    quantity_color -= 1
+                else:
+                    quantity_color = quantity_color - 1
             else:
                 new_ls.append(container1_state[c])
         new_str = ""

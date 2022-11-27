@@ -16,7 +16,10 @@ parser.add_argument('--max_repeat_color', type=int, default=3, help='maximum num
 args = parser.parse_args()
 
 # define vocab of world state
-operations = ['add', 'pour', 'unmix', 'filter', 'extract', 'remove', 'destroy', 'double', 'transfer', 'shift']
+# operations = ['add', 'pour', 'unmix', 'filter', 'extract', 'remove', 'destroy', 'double', 'transfer', 'shift']
+# operations = ['add', 'unmix', 'filter', 'extract', 'destroy', 'double', 'transfer', 'shift']
+# operations = ['add', 'unmix', 'filter', 'destroy', 'double', 'shift', 'empty', 'push']
+operations = ['add', 'unmix', 'filter', 'destroy', 'double', 'shift', 'empty', 'create']
 grounded_objects_container = ['jar', 'beaker', 'bottle', 'mug', 'thermos', 'glass', 'cup', 'flask', 'burette', 'pitcher', 'jug', 'urn', 'decanter', 'flagon', 'canister', 'vessel']
 grounded_objects_color = ['orange', 'blue', 'green', 'yellow', 'red', 'purple', 'magenta', 'violet', 'aqua', 'cabernet', 'daffodil', 'emberiae', 'fuchsia', 'harlequin']
 char_to_color = {}
@@ -69,7 +72,7 @@ def build_command_state(initial_world_state):
     container2 = random.choice(list(initial_world_state.keys()))
     while container1 == container2:
         container2 = random.choice(list(initial_world_state.keys()))
-    into_out_of_to = random.choice(['into', 'to'])
+    into_out_of_to = random.choice(['to'])
     
     if operation == 'add':
         # example command: add three pink to jar
@@ -107,6 +110,12 @@ def build_command_state(initial_world_state):
             command = operation + ' ' +  container1 + ' after ' + container2
         else:
             command = operation + ' ' +  container1 + ' before ' + container2
+    elif operation == 'empty':
+        command = operation + ' ' + container1
+    elif operation == 'push':
+        command = operation
+    elif operation == 'create':
+        command = operation + ' ' + random.choice(grounded_objects_container)
     return command
 
 def generate_data(num_data, exp_dir):
@@ -117,7 +126,7 @@ def generate_data(num_data, exp_dir):
     for z in range(num_data):
         # generate initial world state
         ## sampling number of containers in each world state from 2 to 5
-        num_containers = random.randint(2, 5)
+        num_containers = random.randint(2, 4)
 
         # generate initial world state
         initial_world_state, counter_container_type = generate_initial_world_state(num_containers)
@@ -134,11 +143,12 @@ def generate_data(num_data, exp_dir):
         # save the initial world state, command, and updated world state to a file
         # save json fiel in the experiment directory
 
-        with open(exp_dir +'/data.json', 'w') as f:
-            # with proper indentation
-            json.dump({'initial_world_states_list': initial_world_states_list, 'initial_world_state_commands': initial_world_state_commands, 'update_world_states': update_world_states}, f, indent=4)
-        post_processing_data(exp_dir)
+        # with open(exp_dir +'/data.json', 'w') as f:
+        #     # with proper indentation
+        #     json.dump({'initial_world_states_list': initial_world_states_list, 'initial_world_state_commands': initial_world_state_commands, 'update_world_states': update_world_states}, f, indent=4)
+        # post_processing_data(exp_dir)
         print("Completed {} / {}...".format(z+1, num_data), end = '\r', flush = True)
+    publish_data(exp_dir, initial_world_states_list, initial_world_state_commands, update_world_states)
 
 def mapping_words_to_num(word):
     # using dictionary to map words to numbers
@@ -328,6 +338,23 @@ def update_world_state(world_state, command):
                 new_ls = cur_order[:idx+1] + [container1] + cur_order[idx+1:]
         for k in new_ls:
             world_state.move_to_end(k)
+    elif operation == "empty":
+        container1 = command[1]
+        world_state[container1] = "_"
+    elif operation == "push":
+        cur_order = list(world_state.keys())
+        new_ls = [cur_order[-1]] + cur_order[:-1]
+        for k in new_ls:
+            world_state.move_to_end(k)
+    elif operation == "create":
+        container1 = command[1]
+        cur_conts = list(world_state.keys())
+        lab = -1
+        for co in cur_conts:
+            if container1 == co[:-1]:
+                if int(co[-1]) > lab:
+                    lab = int(co[-1])
+        world_state[container1+str(lab+1)] = "_"
 
     return world_state
             

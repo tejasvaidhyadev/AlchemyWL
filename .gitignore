@@ -1,4 +1,9 @@
 # ignore /data
-/data
+**/data
+**/outputs
+**/models
+**/logs
+**/out
+**/wandb
 # ignore python cache
 __pycache__

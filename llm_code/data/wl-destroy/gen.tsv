@@ -1,6 +1,0 @@
-Input	Output
-Jar : b b b ; Beaker : o b ; SEPARATE Destroy Jar	Beaker : o b ;
-Jar : b o ; Beaker : o ; SEPARATE Destroy Beaker	Jar : b o ;
-Beaker : o o b ; Jar : b b o b ; SEPARATE Destroy Jar	Beaker : o o b ;
-Jar : b ; Beaker : b o ; SEPARATE Destroy Beaker	Jar : b ;
-Beaker : b o b o ; Jar : o b ; SEPARATE Destroy Jar	Beaker : b o b o ;

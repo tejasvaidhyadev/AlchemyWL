@@ -1,0 +1,6 @@
+Input	Output
+Jar : b o b o ; Beaker : o b ; SEPARATE Add two orange to Jar	Jar : b o b o o o ; Beaker : o b ;
+Beaker : o b o ; Jar : o o o ; SEPARATE Add two blue to Jar	Beaker : o b o ; Jar : o o o b b ;
+Beaker : b b ; Jar : o b ; SEPARATE Add one orange to Beaker	Beaker : b b o ; Jar : o b ;
+Jar : b b ; Beaker : b o b ; SEPARATE Add one blue to Beaker	Jar : b b ; Beaker : b o b b ;
+Jar : b ; SEPARATE Add two orange to Jar	Jar : b o o ;

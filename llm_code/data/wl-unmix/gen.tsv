@@ -1,0 +1,6 @@
+Input	Output
+Jar : o o b b ; Beaker : o ; SEPARATE Unmix Jar	Jar : o o ; Jar : b b ; Beaker : o ;
+Beaker : b o b ; Jar : o o b ; SEPARATE Unmix Beaker	Beaker : b b ; Beaker : o ; Jar : o o b ;
+Beaker : b b o ; Jar : o ; SEPARATE Unmix Beaker	Beaker : b b ; Beaker : o ; Jar : o ;
+Jar : b o o ; SEPARATE Unmix Jar	Jar : b ; Jar : o o ;
+Beaker : o b ; Jar : b o b ; SEPARATE Unmix Jar	Jar : o b ; Jar : b b ; Jar : o ;
